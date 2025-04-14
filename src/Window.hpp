@@ -43,6 +43,9 @@ public:
 protected:
     HWND _hwnd;
     HINSTANCE _hInstance;
+    char _magic[64];
+
+    static constexpr auto MAGIC = "SKIBIDI";
 
     static LRESULT CALLBACK windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
     virtual LRESULT handleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;

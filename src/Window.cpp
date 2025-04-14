@@ -1,13 +1,18 @@
 #include "Window.hpp"
 
+#include <cassert>
+
 #include "Util.hpp"
 #include <fmt/format.h>
 #include <stdexcept>
+
+#include "Debug.hpp"
 
 Window::Window(HINSTANCE hInstance)
     : _hwnd(nullptr),
       _hInstance(hInstance)
 {
+    strcpy(_magic, MAGIC);
 }
 
 Window::Window(Window&& other) noexcept
@@ -40,10 +45,6 @@ void Window::moveFrom(Window& other) noexcept
 
 Window::~Window()
 {
-    if (_hwnd)
-    {
-        DestroyWindow(_hwnd);
-    }
 }
 
 void Window::registerWindowClass(
@@ -122,7 +123,6 @@ void Window::update()
 LRESULT CALLBACK Window::windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     Window* pThis = nullptr;
-    
     if (uMsg == WM_NCCREATE)
     {
         CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
@@ -130,18 +130,28 @@ LRESULT CALLBACK Window::windowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM 
         SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
         pThis->_hwnd = hwnd;
     }
+    else if (uMsg == WM_NCDESTROY)
+    {
+        pThis = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+        if (pThis)
+        {
+            pThis->_hwnd = nullptr;
+        }
+        return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
     else
     {
         pThis = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        if (pThis)
+        {
+            assert(!strcmp(pThis->_magic, MAGIC));
+        }
     }
     
     if (pThis)
     {
         auto ret = pThis->handleMessage(uMsg, wParam, lParam);
-        if (uMsg == WM_NCDESTROY)
-        {
-            pThis->_hwnd = nullptr;
-        }
         return ret;
     }
     

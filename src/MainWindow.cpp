@@ -1,5 +1,7 @@
 #include "MainWindow.hpp"
 
+#include "Debug.hpp"
+
 MainWindow::MainWindow(HINSTANCE hInstance)
     : Window(hInstance)
 {
@@ -18,6 +20,9 @@ LRESULT MainWindow::handleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
     case WM_PAINT:
         onPaint();
+        return 0;
+    case WM_LBUTTONUP:
+        trace("Click!");
         return 0;
     }
     return DefWindowProc(getHandle(), uMsg, wParam, lParam);
@@ -39,7 +44,7 @@ void MainWindow::create()
 {
     Window::create(
         "MainWindow",                       // className
-        "TinySvgView",                      // title
+        "MainWindow",                      // title
         WS_OVERLAPPEDWINDOW,                // style
         CW_USEDEFAULT,                      // x
         CW_USEDEFAULT,                      // y

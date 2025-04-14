@@ -1,6 +1,7 @@
 /.cursor
 /.vscode
 /build
+/CMakeFile
 *.bak
 *.swp
 *.tmp

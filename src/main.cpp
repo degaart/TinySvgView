@@ -1,6 +1,7 @@
 #include "Debug.hpp"
 #include "Util.hpp"
 #include "MainWindow.hpp"
+#include "TraceWindow.hpp"
 #include <fmt/format.h>
 #include <windows.h>
 
@@ -14,11 +15,19 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         trace(fmt::format("Arg: {}", arg));
     }
 
+    TraceWindow traceWindow(hInstance);
+    traceWindow.registerWindowClass(hInstance);
+    traceWindow.create();
+    traceWindow.show(nCmdShow);
+    setTraceWindow(traceWindow.getHandle());
+
+    trace("Trace window created");
+
     MainWindow mainWindow(hInstance);
     mainWindow.registerWindowClass(hInstance);
     mainWindow.create();
     mainWindow.show(nCmdShow);
-    
+
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0))
     {

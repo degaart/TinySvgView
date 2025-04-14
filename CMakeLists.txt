@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
-project(TinySvgView)
+#project(TinySvgView)
+project(Supervisor)
 
 cmake_policy(SET CMP0135 NEW)
 
@@ -24,5 +25,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(fmt)
 FetchContent_MakeAvailable(plutosvg)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_target_properties(camera2png fmt plutosvg plutovg smiley svg2png PROPERTIES FOLDER Dependencies)
+
 add_subdirectory(src)
 
