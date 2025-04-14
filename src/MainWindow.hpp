@@ -2,6 +2,7 @@
 #define MAIN_WINDOW_HPP
 
 #include "Window.hpp"
+#include <plutosvg.h>
 
 struct BitmapData
 {
@@ -25,8 +26,8 @@ private:
     static constexpr auto ID_FILE_EXIT = 102;
 
     std::string _filename;
-    BitmapData _bitmapData;
     HBITMAP _backbuffer;
+    plutosvg_document_t* _document;
 
     LRESULT handleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
     void updateBackbuffer(HDC hdc);

@@ -8,7 +8,7 @@
 #include <io.h>
 
 MainWindow::MainWindow(HINSTANCE hInstance)
-    : Window(hInstance), _backbuffer(nullptr), _bitmapData{}
+    : Window(hInstance), _backbuffer(nullptr), _document(nullptr)
 {
 }
 
@@ -167,33 +167,15 @@ void MainWindow::onOpenFile(const std::string& path)
 
 void MainWindow::onCreate()
 {
-    static constexpr auto WIDTH = 353;
-    static constexpr auto HEIGHT = 480;
-    static constexpr auto STRIDE = 353 * 3;
-
-    int fd = _open("testdata.raw", _O_RDONLY|_O_BINARY);
-    if (fd == -1)
+    RECT rcClient;
+    GetClientRect(_hwnd, &rcClient);
+    
+    _document = plutosvg_document_load_from_file("testimage.svg", rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
+    if (!_document)
     {
-        trace("Failed to open testdata.raw");
+        trace("Failed to load document");
         return;
     }
-
-    auto bufferSize = STRIDE * HEIGHT;
-    unsigned char* buffer = (unsigned char*) malloc(bufferSize);
-    auto ret = _read(fd, buffer, bufferSize);
-    if (ret != bufferSize)
-    {
-        trace("Failed to read testdata.raw");
-        _close(fd);
-        return;
-    }
-    _close(fd);
-    trace("File loaded successfully");
-
-    _bitmapData.width = WIDTH;
-    _bitmapData.height = HEIGHT;
-    _bitmapData.stride = STRIDE;
-    _bitmapData.data = buffer;
 
     auto hdc = GetDC(_hwnd);
     updateBackbuffer(hdc);
@@ -202,10 +184,25 @@ void MainWindow::onCreate()
 
 void MainWindow::updateBackbuffer(HDC hdc)
 {
-    auto memDC = CreateCompatibleDC(hdc);
     RECT rcClient;
     GetClientRect(_hwnd, &rcClient);
-    _backbuffer = CreateCompatibleBitmap(hdc, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
+    int width = rcClient.right - rcClient.left;
+    int height = rcClient.bottom - rcClient.top;
+
+    auto surface = plutosvg_document_render_to_surface(_document, nullptr, width, height, nullptr, nullptr, nullptr);
+    if (!surface)
+    {
+        trace("Failed to render document to surface");
+    }
+
+    BitmapData docData;
+    docData.width = plutovg_surface_get_width(surface);
+    docData.height = plutovg_surface_get_height(surface);
+    docData.stride = plutovg_surface_get_stride(surface);
+    docData.data = plutovg_surface_get_data(surface);
+    
+    auto memDC = CreateCompatibleDC(hdc);
+    _backbuffer = CreateCompatibleBitmap(hdc, width, height);
     if (!_backbuffer)
     {
         trace("Failed to create backbuffer");
@@ -216,15 +213,15 @@ void MainWindow::updateBackbuffer(HDC hdc)
     auto oldBitmap = (HBITMAP)SelectObject(memDC, _backbuffer);
     FillRect(memDC, &rcClient, (HBRUSH)GetStockObject(DKGRAY_BRUSH));
 
-    const unsigned char* buffer = static_cast<const unsigned char*>(_bitmapData.data);
-    for (int y = 0; y < _bitmapData.height && y < rcClient.bottom - rcClient.top; y++)
+    const unsigned char* buffer = static_cast<const unsigned char*>(docData.data);
+    for (int y = 0; y < docData.height && y < rcClient.bottom - rcClient.top; y++)
     {
-        for (int x = 0; x < _bitmapData.width && x < rcClient.right - rcClient.left; x++)
+        for (int x = 0; x < docData.width && x < rcClient.right - rcClient.left; x++)
         {
-            auto index = y * _bitmapData.stride + x * 3;
-            auto r = buffer[index];
+            auto index = y * docData.stride + x * 4;
+            auto r = buffer[index + 2];
             auto g = buffer[index + 1];
-            auto b = buffer[index + 2];
+            auto b = buffer[index + 0];
             auto color = RGB(r, g, b);
             SetPixel(memDC, x, y, color);
         }
@@ -232,6 +229,7 @@ void MainWindow::updateBackbuffer(HDC hdc)
 
     SelectObject(memDC, oldBitmap);
     DeleteDC(memDC);
+    plutovg_surface_destroy(surface);
 }
 
 void MainWindow::onSize(int width, int height)
