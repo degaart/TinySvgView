@@ -2,6 +2,8 @@
 /.vscode
 /build
 /CMakeFile
+CMakePresets.json
+CMakeUserPresets.json
 *.bak
 *.swp
 *.tmp
