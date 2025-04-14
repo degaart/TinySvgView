@@ -8,7 +8,7 @@
 class Window
 {
 public:
-    Window(HINSTANCE hInstance);
+    explicit Window(HINSTANCE hInstance);
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
     Window(Window&& other) noexcept;

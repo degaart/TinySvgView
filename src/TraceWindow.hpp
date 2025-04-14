@@ -9,7 +9,7 @@ class TraceWindow : public Window
 public:
     static constexpr auto UM_TRACE = WM_USER + 100;
 
-    TraceWindow(HINSTANCE hInstance);
+    explicit TraceWindow(HINSTANCE hInstance);
     ~TraceWindow();
 
     void registerWindowClass(HINSTANCE hInstance);

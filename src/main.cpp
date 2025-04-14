@@ -28,6 +28,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     mainWindow.create();
     mainWindow.show(nCmdShow);
 
+    if (args.size() > 1)
+    {
+        for (const auto& arg : args)
+        {
+            mainWindow.openFile(arg);
+        }
+    }
+
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0))
     {

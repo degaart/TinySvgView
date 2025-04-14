@@ -21,7 +21,7 @@ void TraceWindow::registerWindowClass(HINSTANCE hInstance)
         CS_HREDRAW | CS_VREDRAW,
         nullptr,
         LoadCursor(nullptr, IDC_ARROW),
-        (HBRUSH)(COLOR_WINDOW + 1),
+        (HBRUSH)(COLOR_BTNFACE + 1),
         nullptr,
         "TraceWindow",
         nullptr
